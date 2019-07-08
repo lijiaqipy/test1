@@ -1,3 +1,4 @@
+import logging
 import os
 import time
 from urllib.parse import urljoin
@@ -11,6 +12,8 @@ from libs.http import render_json
 from user import logic
 from user.forms import ProfileForm
 from user.models import User, Profile
+
+logger = logging.getLogger('inf')
 
 
 def verify_phone(request):
@@ -40,8 +43,8 @@ def login(request):
 
     # 1、检查 验证码
     cached_code = cache.get(config.VERIFY_CODE_CACHE_PREFIX % phone_num)
-    if cached_code != code:
-        return render_json(code=errors.VerifyCodeError.code)
+    # if cached_code != code:
+    #     return render_json(code=errors.VerifyCodeError.code)
 
     # 2、登录或注册
     # try:
@@ -50,9 +53,11 @@ def login(request):
     #     user = User.objects.create(phonenum=phone)
     #     # 创建用户的同时，使用 user.id 创建 Profile 对象，建立一对一的关联
     #     Profile.objects.create(id=user.id)
-
+    
     user, created = User.objects.get_or_create(phonenum=phone_num)
     request.session['uid'] = user.id
+
+    logger.info('user.login, uid:%s' % user.id)
 
     return render_json(data=user.to_dict())
 
